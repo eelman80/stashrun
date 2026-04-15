@@ -36,6 +36,13 @@ def test_cmd_template_save_with_defaults(capsys):
     assert T.get_template("withdef") == {"KEY": "myval", "OTHER": None}
 
 
+def test_cmd_template_save_overwrites_existing(capsys):
+    """Saving a template with an existing name should overwrite it."""
+    T.save_template("overwrite_me", {"OLD_VAR": "old_val"})
+    cmd_template_save(_ns(name="overwrite_me", vars=["NEW_VAR=new_val"]))
+    assert T.get_template("overwrite_me") == {"NEW_VAR": "new_val"}
+
+
 def test_cmd_template_delete_existing(capsys):
     T.save_template("bye", {"X": None})
     cmd_template_delete(_ns(name="bye"))
@@ -90,6 +97,16 @@ def test_cmd_template_apply_filters_env(capsys, monkeypatch):
     assert "MY_VAR" in out
     assert "hello" in out
     assert "UNRELATED" not in out
+
+
+def test_cmd_template_apply_uses_default_when_env_missing(capsys, monkeypatch):
+    """Variables not in env should fall back to the template's default value."""
+    monkeypatch.delenv("DEFAULTED_VAR", raising=False)
+    T.save_template("with_default", {"DEFAULTED_VAR": "fallback"})
+    cmd_template_apply(_ns(name="with_default"))
+    out = capsys.readouterr().out
+    assert "DEFAULTED_VAR" in out
+    assert "fallback" in out
 
 
 def test_cmd_template_apply_missing_template(capsys):
