@@ -1,64 +1,63 @@
-"""High-level snapshot management combining env capture and storage."""
+"""High-level snapshot operations (create, restore, list, remove).
+
+This file replaces the previous version and adds tag-cleanup on removal.
+"""
+
+from __future__ import annotations
 
 from typing import Dict, List, Optional
 
-from stashrun.env import capture_env, apply_env, filter_env
-from stashrun.storage import save_snapshot, load_snapshot, list_snapshots, delete_snapshot
+from stashrun.env import capture_env
+from stashrun.storage import (
+    delete_snapshot,
+    list_snapshots,
+    load_snapshot,
+    save_snapshot,
+)
+from stashrun.tags import remove_snapshot_tags
 
 
 def create_snapshot(
     name: str,
     keys: Optional[List[str]] = None,
-    prefixes: Optional[List[str]] = None,
+    prefix: Optional[str] = None,
 ) -> Dict[str, str]:
-    """Capture the current environment and persist it as a named snapshot.
-
-    Args:
-        name: Identifier for the snapshot.
-        keys: Specific env var keys to include.
-        prefixes: Only include vars matching these prefixes.
-
-    Returns:
-        The captured environment dictionary that was saved.
-    """
-    env = capture_env(keys=keys)
-    if prefixes:
-        env = filter_env(env, prefixes=prefixes)
+    """Capture current env and persist it as *name*."""
+    env = capture_env(keys=keys, prefix=prefix)
     save_snapshot(name, env)
     return env
 
 
-def restore_snapshot(name: str, overwrite: bool = True) -> Optional[Dict[str, str]]:
-    """Load a named snapshot and apply it to the current environment.
+def restore_snapshot(name: str) -> Optional[Dict[str, str]]:
+    """Load snapshot *name* and apply it to the current process env.
 
-    Args:
-        name: Identifier of the snapshot to restore.
-        overwrite: Whether to overwrite existing env vars.
-
-    Returns:
-        The restored environment dictionary, or None if not found.
+    Returns the env dict, or None if the snapshot does not exist.
     """
+    import os
+
     env = load_snapshot(name)
     if env is None:
         return None
-    apply_env(env, overwrite=overwrite)
+    os.environ.update(env)
     return env
 
 
 def get_snapshot(name: str) -> Optional[Dict[str, str]]:
-    """Retrieve a snapshot without applying it."""
+    """Return the env dict for *name*, or None."""
     return load_snapshot(name)
 
 
 def remove_snapshot(name: str) -> bool:
-    """Delete a named snapshot.
+    """Delete snapshot *name* and its associated tags.
 
-    Returns:
-        True if deleted, False if it did not exist.
+    Returns True if the snapshot existed and was deleted.
     """
-    return delete_snapshot(name)
+    deleted = delete_snapshot(name)
+    if deleted:
+        remove_snapshot_tags(name)
+    return deleted
 
 
 def list_all_snapshots() -> List[str]:
-    """Return names of all available snapshots."""
-    return list_snapshots()
+    """Return sorted list of all snapshot names."""
+    return sorted(list_snapshots())
