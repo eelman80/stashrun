@@ -78,3 +78,12 @@ def test_all_tags_returns_full_index():
     index = tag_mod.all_tags()
     assert index["a"] == ["x"]
     assert index["b"] == ["y"]
+
+
+def test_find_by_tag_returns_sorted():
+    """Snapshots returned by find_by_tag should be in a consistent order."""
+    tag_mod.add_tag("snap3", "release")
+    tag_mod.add_tag("snap1", "release")
+    tag_mod.add_tag("snap2", "release")
+    result = tag_mod.find_by_tag("release")
+    assert result == sorted(result)
