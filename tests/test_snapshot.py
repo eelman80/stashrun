@@ -52,7 +52,7 @@ def test_restore_snapshot_missing_returns_none():
 
 
 def test_get_snapshot_returns_dict(monkeypatch):
-    monkeypatch.setenv("GET_VAR", "get_val")
+    monkeypatch.setenv("GET_")
     create_snapshot("getsnap", keys=["GET_VAR"])
     snap = get_snapshot("getsnap")
     assert isinstance(snap, dict)
@@ -77,3 +77,19 @@ def test_list_all_snapshots(monkeypatch):
     names = list_all_snapshots()
     assert "snap_a" in names
     assert "snap_b" in names
+
+
+def test_list_all_snapshots_empty():
+    """list_all_snapshots should return an empty list when no snapshots exist."""
+    names = list_all_snapshots()
+    assert names == []
+
+
+def test_create_snapshot_overwrites_existing(monkeypatch):
+    """Creating a snapshot with the same name should overwrite the previous one."""
+    monkeypatch.setenv("OW_VAR", "original")
+    create_snapshot("owsnap", keys=["OW_VAR"])
+    monkeypatch.setenv("OW_VAR", "updated")
+    create_snapshot("owsnap", keys=["OW_VAR"])
+    snap = get_snapshot("owsnap")
+    assert snap["OW_VAR"] == "updated"
