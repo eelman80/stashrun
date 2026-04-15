@@ -44,6 +44,12 @@ Delete a stash:
 stashrun drop myproject
 ```
 
+Show the contents of a stash without loading it:
+
+```bash
+stashrun show myproject
+```
+
 Stashes are stored locally in `~/.stashrun/` as encrypted JSON files, scoped by name so you can switch between project contexts without losing your environment state.
 
 ---
