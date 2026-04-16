@@ -100,16 +100,17 @@ def test_cmd_template_apply_filters_env(capsys, monkeypatch):
 
 
 def test_cmd_template_apply_uses_default_when_env_missing(capsys, monkeypatch):
-    """Variables not in env should fall back to the template's default value."""
-    monkeypatch.delenv("DEFAULTED_VAR", raising=False)
-    T.save_template("with_default", {"DEFAULTED_VAR": "fallback"})
-    cmd_template_apply(_ns(name="with_default"))
+    """Variables not in env should fall back to the template default value."""
+    monkeypatch.delenv("FALLBACK_VAR", raising=False)
+    T.save_template("withfallback", {"FALLBACK_VAR": "default_val"})
+    cmd_template_apply(_ns(name="withfallback"))
     out = capsys.readouterr().out
-    assert "DEFAULTED_VAR" in out
-    assert "fallback" in out
+    assert "FALLBACK_VAR" in out
+    assert "default_val" in out
 
 
 def test_cmd_template_apply_missing_template(capsys):
-    cmd_template_apply(_ns(name="no_template"))
+    """Applying a non-existent template should report an error."""
+    cmd_template_apply(_ns(name="no_such_template"))
     out = capsys.readouterr().out
     assert "not found" in out
