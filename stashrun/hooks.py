@@ -1,6 +1,7 @@
 """Lifecycle hooks for snapshot events (pre/post save, restore)."""
 
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Optional
@@ -59,12 +60,19 @@ def list_hooks() -> dict:
 
 
 def run_hook(event: str, snapshot_name: str) -> Optional[int]:
-    """Execute the hook command for an event. Returns exit code or None if no hook."""
+    """Execute the hook command for an event.
+
+    Returns the exit code of the hook process, or None if no hook is registered
+    for the event. Raises RuntimeError if the hook command fails (non-zero exit).
+    """
     cmd = get_hook(event)
     if cmd is None:
         return None
     env_extra = {"STASHRUN_SNAPSHOT": snapshot_name, "STASHRUN_EVENT": event}
-    import os
     env = {**os.environ, **env_extra}
     result = subprocess.run(cmd, shell=True, env=env)
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"Hook for '{event}' exited with code {result.returncode}: {cmd}"
+        )
     return result.returncode
