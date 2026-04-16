@@ -45,3 +45,19 @@ def compare_snapshot_to_template(snapshot_name: str, template_name: str) -> Opti
     missing = [k for k in template if k not in env]
     present = [k for k in template if k in env]
     return {"missing": missing, "present": present}
+
+
+def list_snapshot_template_coverage(snapshot_name: str, template_name: str) -> Optional[float]:
+    """Return the fraction of template keys present in the snapshot, as a float between 0 and 1.
+
+    Returns None if the snapshot or template does not exist, or if the template is empty.
+    """
+    result = compare_snapshot_to_template(snapshot_name, template_name)
+    if result is None:
+        return None
+
+    total = len(result["missing"]) + len(result["present"])
+    if total == 0:
+        return None
+
+    return len(result["present"]) / total
