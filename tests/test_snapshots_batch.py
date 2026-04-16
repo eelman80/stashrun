@@ -31,6 +31,14 @@ def test_batch_delete_exception_handled(mock_rm):
     assert results["dev"] is False
 
 
+@patch("stashrun.snapshots_batch.remove_snapshot")
+def test_batch_delete_empty_list(mock_rm):
+    """Deleting an empty list should return an empty dict without any calls."""
+    results = snapshots_batch.batch_delete([])
+    assert results == {}
+    mock_rm.assert_not_called()
+
+
 @patch("stashrun.snapshots_batch.copy_snapshot")
 def test_batch_copy_success(mock_cp):
     mock_cp.return_value = True
