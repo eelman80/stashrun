@@ -28,6 +28,18 @@ def cmd_key_status(args: argparse.Namespace) -> None:
             print("No encryption key configured. Snapshots will not be encrypted.")
 
 
+def cmd_key_clear(args: argparse.Namespace) -> None:
+    """Remove the saved encryption key file."""
+    import os
+    from pathlib import Path
+    key_file = Path.home() / ".stashrun_key"
+    if key_file.exists():
+        key_file.unlink()
+        print(f"Encryption key file removed: {key_file}")
+    else:
+        print("No key file found. Nothing to remove.")
+
+
 def register_encryption_commands(subparsers: argparse._SubParsersAction) -> None:
     keygen_parser = subparsers.add_parser("keygen", help="Generate a new encryption key")
     keygen_parser.add_argument(
@@ -37,3 +49,6 @@ def register_encryption_commands(subparsers: argparse._SubParsersAction) -> None
 
     status_parser = subparsers.add_parser("key-status", help="Show encryption key status")
     status_parser.set_defaults(func=cmd_key_status)
+
+    clear_parser = subparsers.add_parser("key-clear", help="Remove the saved encryption key file")
+    clear_parser.set_defaults(func=cmd_key_clear)
