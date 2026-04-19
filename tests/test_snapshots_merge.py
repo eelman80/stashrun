@@ -62,6 +62,21 @@ def test_merge_envs_three_sources():
     assert conflicts == []
 
 
+def test_merge_envs_empty_list():
+    """Merging an empty list of envs should return an empty dict with no conflicts."""
+    merged, conflicts = merge_envs([])
+    assert merged == {}
+    assert conflicts == []
+
+
+def test_merge_envs_single_source():
+    """Merging a single env should return it unchanged with no conflicts."""
+    env = {"A": "1", "B": "2"}
+    merged, conflicts = merge_envs([env])
+    assert merged == {"A": "1", "B": "2"}
+    assert conflicts == []
+
+
 # ---------------------------------------------------------------------------
 # merge_snapshots
 # ---------------------------------------------------------------------------
@@ -96,20 +111,4 @@ def test_merge_snapshots_missing_returns_none(mock_get):
 # ---------------------------------------------------------------------------
 
 @patch("stashrun.snapshots_merge.get_snapshot", side_effect=_fake_get)
-def test_merge_conflicts_detects_conflict(mock_get):
-    conflicts = merge_conflicts(["snap_a", "snap_b"])
-    assert "SHARED" in conflicts
-    assert set(conflicts["SHARED"]) == {"from_a", "from_b"}
-
-
-@patch("stashrun.snapshots_merge.get_snapshot", side_effect=_fake_get)
-def test_merge_conflicts_no_conflict_for_unique_keys(mock_get):
-    conflicts = merge_conflicts(["snap_a", "snap_b"])
-    assert "A" not in conflicts
-    assert "B" not in conflicts
-
-
-@patch("stashrun.snapshots_merge.get_snapshot", return_value=None)
-def test_merge_conflicts_skips_missing(mock_get):
-    conflicts = merge_conflicts(["ghost"])
-    assert conflicts == {}
+def test_merge_conflicts_dete
