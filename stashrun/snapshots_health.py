@@ -70,3 +70,11 @@ def health_summary() -> list[dict]:
         if report:
             reports.append(report)
     return sorted(reports, key=lambda r: r["score"])
+
+
+def health_by_status() -> dict[str, list[dict]]:
+    """Return health reports grouped by status: healthy, degraded, unhealthy."""
+    grouped: dict[str, list[dict]] = {"healthy": [], "degraded": [], "unhealthy": []}
+    for report in health_summary():
+        grouped[report["status"]].append(report)
+    return grouped
