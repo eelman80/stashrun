@@ -5,7 +5,12 @@ from stashrun.snapshots_expiry import is_expired, list_expired, purge_expired, e
 
 
 def cmd_expiry_check(args: argparse.Namespace) -> None:
-    status = expiry_status(args.name)
+    """Check and display the expiry status of a named snapshot."""
+    try:
+        status = expiry_status(args.name)
+    except KeyError:
+        print(f"Error: snapshot '{args.name}' not found.")
+        return
     if not status["has_ttl"]:
         print(f"{args.name}: no TTL set")
         return
@@ -14,6 +19,7 @@ def cmd_expiry_check(args: argparse.Namespace) -> None:
 
 
 def cmd_expiry_list(args: argparse.Namespace) -> None:
+    """List all snapshots that have passed their expiry time."""
     expired = list_expired()
     if not expired:
         print("No expired snapshots.")
@@ -23,6 +29,7 @@ def cmd_expiry_list(args: argparse.Namespace) -> None:
 
 
 def cmd_expiry_purge(args: argparse.Namespace) -> None:
+    """Delete all expired snapshots, or preview deletions with --dry-run."""
     purged = purge_expired(dry_run=args.dry_run)
     if not purged:
         print("Nothing to purge.")
@@ -33,6 +40,7 @@ def cmd_expiry_purge(args: argparse.Namespace) -> None:
 
 
 def register_expiry_commands(subparsers) -> None:
+    """Register all expiry-related subcommands onto the given subparsers object."""
     p_check = subparsers.add_parser("expiry-check", help="Check expiry status of a snapshot")
     p_check.add_argument("name")
     p_check.set_defaults(func=cmd_expiry_check)
